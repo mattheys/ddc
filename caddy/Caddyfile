@@ -12,8 +12,5 @@ https://webtop.{$DOMAIN_NAME} {
 }
 
 https://portainer.{$DOMAIN_NAME} {
-  basicauth {
-    {$CADDY_USER} {$CADDY_PASSWORD}          # bcrypt encrypted password https://bcrypt-generator.com/
-  }
   reverse_proxy http://portainer:3000
 }
