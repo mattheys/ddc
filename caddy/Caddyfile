@@ -12,5 +12,5 @@ https://webtop.{$DOMAIN_NAME} {
 }
 
 https://portainer.{$DOMAIN_NAME} {
-  reverse_proxy http://portainer:3000
+  reverse_proxy http://portainer:9000
 }
