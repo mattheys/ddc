@@ -54,6 +54,8 @@ services:
       - internal
 
   portainer:
+    profiles:
+      - portainer
     container_name: portainer
     image: portainer/portainer-ce
     volumes:
