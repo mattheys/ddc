@@ -10,3 +10,10 @@ https://webtop.{$DOMAIN_NAME} {
   }
   reverse_proxy http://webtop:3000
 }
+
+https://portainer.{$DOMAIN_NAME} {
+  basicauth {
+    {$CADDY_USER} {$CADDY_PASSWORD}          # bcrypt encrypted password https://bcrypt-generator.com/
+  }
+  reverse_proxy http://portainer:3000
+}
