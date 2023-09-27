@@ -52,7 +52,6 @@ services:
       - ./caddy/data:/data
     networks:
       - internal
-    restart: always
 
   portainer:
     container_name: portainer
