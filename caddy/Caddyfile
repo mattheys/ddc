@@ -6,7 +6,7 @@
 
 https://webtop.{$DOMAIN_NAME} {
   basicauth {
-    {$CADDY_USER} {$CADDY_PASSWORD}          # bcrypt encrypted password https://bcrypt-generator.com/
+    {$CADDY_USER} {$CADDY_PASSWORD}
   }
   reverse_proxy http://webtop:3000
 }
