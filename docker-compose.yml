@@ -52,5 +52,14 @@ services:
       - ./caddy/data:/data
     networks:
       - internal
+    restart: always
 
-
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer:/data
+    networks:
+      - internal
+    restart: always
