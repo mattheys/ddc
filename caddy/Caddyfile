@@ -1,0 +1,12 @@
+{
+  log {
+    output stdout
+  }
+}
+
+https://webtop.{$DOMAIN_NAME} {
+  basicauth {
+    {$CADDY_USER} {$CADDY_PASSWORD}          # bcrypt encrypted password https://bcrypt-generator.com/
+  }
+  reverse_proxy http://webtop:3000
+}
