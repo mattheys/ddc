@@ -12,6 +12,9 @@ networks:
         - subnet: 10.64.32.0/24
           gateway: 10.64.32.1
 
+volumes:
+  - nodered
+
 services:
   duckdns:
     profiles: [ all ]
@@ -105,10 +108,10 @@ services:
   nodered:
     profiles: [ all, nodered ]
     container_name: nodered
-    image: nodered/node-red:1.3.5
+    image: nodered/node-red:latest
     user: node-red:dialout
     volumes:
-      - ./nodered:/data
+      - nodered:/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - caddy
@@ -132,4 +135,6 @@ services:
     labels:
       - caddy.dynamic.docker.dns=dozzle.${DUCK_DNS_DOMAIN}.duckdns.org
       - caddy.dynamic.docker.target=dozzle:8080
+    networks:
+      - internal
 
