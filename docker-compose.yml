@@ -41,6 +41,9 @@ services:
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./caddy/data:/data
+    depends_on:
+      - docker-dynamic-caddy
+      - duckdns
     networks:
       - internal
       - dynamic-caddy
@@ -69,6 +72,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./portainer:/data
+    depends_on:
+      - caddy
     networks:
       - internal
     restart: always
@@ -89,7 +94,38 @@ services:
     volumes:
       - ./webtop:/config
       - /var/run/docker.sock:/var/run/docker.sock #optional
+    depends_on:
+      - caddy
     shm_size: "1gb" #optional
     restart: unless-stopped
     networks:
       - internal
+
+  nodered:
+    profiles:
+      - nodered
+    container_name: nodered
+    image: nodered/node-red:1.3.5
+    volumes:
+      - ./nodered:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - caddy.dynamic.docker.dns=nodered.${DUCK_DNS_DOMAIN}.duckdns.org
+      - caddy.dynamic.docker.target=nodered:1880
+    environment:
+      - TZ=Europe/London
+    networks:
+      - internal
+    restart: unless-stopped
+
+  dozzle:
+    profiles:
+      - dozzle
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - caddy.dynamic.docker.dns=dozzle.${DUCK_DNS_DOMAIN}.duckdns.org
+      - caddy.dynamic.docker.target=dozzle:8080
+

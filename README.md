@@ -40,7 +40,7 @@ cp .env.example .env
 
 ### Go
 ```
-docker compose up -d
+docker compose --profile webtop up -d
 ```
 
 #### Optional start Portainer to manage containers, you must access and setup the login information for portainer within a few minutes or the container will stop itself
@@ -49,3 +49,10 @@ docker compose --profile portainer up -d
 ```
 
 You should now be able to access your webtop at https://webtop.{Domain}.duckdns.org
+
+### All Profiles
+
+- dozzle
+- nodered
+- portainer
+- webtop
