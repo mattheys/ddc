@@ -52,6 +52,8 @@ You should now be able to access your webtop at https://webtop.{Domain}.duckdns.
 
 ### All Profiles
 
+- **all**  special profile to bring up everything
+
 - dozzle
 - nodered
 - portainer
