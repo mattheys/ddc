@@ -5,6 +5,13 @@ networks:
     name: internal
     driver: bridge
 
+  dynamic-caddy:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.64.32.0/24
+          gateway: 10.64.32.1
+
 services:
   duckdns:
     image: lscr.io/linuxserver/duckdns:latest
@@ -19,22 +26,6 @@ services:
     volumes:
       - ./duckdns/config:/config #optional
     restart: unless-stopped
-
-  webtop:
-    image: lscr.io/linuxserver/webtop
-    container_name: webtop
-    privileged: true #optional
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    volumes:
-      - ./webtop:/config
-      - /var/run/docker.sock:/var/run/docker.sock #optional
-    shm_size: "1gb" #optional
-    restart: unless-stopped
-    networks:
-      - internal
 
   caddy:
     image: caddy
@@ -52,6 +43,27 @@ services:
       - ./caddy/data:/data
     networks:
       - internal
+      - dynamic-caddy
+
+  docker-dynamic-caddy:
+    container_name: docker-dynamic-caddy
+    image: mheys1/docker-dynamic-caddy
+    restart: always
+    environment:
+      - DDC:App:DockerHostSettings:0:Endpoint=unix:///var/run/docker.sock
+      - DDC:App:DockerHostSettings:0:FriendlyName=Localhost
+      - DDC:App:Url=http://0.0.0.0:5000/
+    labels:
+      - caddy.dynamic.docker.dns=caddy.${DUCK_DNS_DOMAIN}.duckdns.org
+      - caddy.dynamic.docker.target=docker-dynamic-caddy:5000
+    volumes:
+      - ./docker-dynamic-caddy/data:/app/data
+      - ./docker-dynamic-caddy/logs:/app/logs
+      - ./docker-dynamic-caddy/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      dynamic-caddy:
+        ipv4_address: 10.64.32.254
 
   portainer:
     profiles:
@@ -64,3 +76,24 @@ services:
     networks:
       - internal
     restart: always
+
+  webtop:
+    profiles:
+      - webtop
+    image: lscr.io/linuxserver/webtop
+    container_name: webtop
+    privileged: true #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    labels:
+      - caddy.dynamic.docker.dns=webtop.${DUCK_DNS_DOMAIN}.duckdns.org
+      - caddy.dynamic.docker.target=webtop:3000
+    volumes:
+      - ./webtop:/config
+      - /var/run/docker.sock:/var/run/docker.sock #optional
+    shm_size: "1gb" #optional
+    restart: unless-stopped
+    networks:
+      - internal

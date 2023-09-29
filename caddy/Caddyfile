@@ -2,15 +2,25 @@
   log {
     output stdout
   }
-}
-
-https://webtop.{$DOMAIN_NAME} {
-  basicauth {
-    {$CADDY_USER} {$CADDY_PASSWORD}
+  on_demand_tls {
+    ask http://10.64.32.254:5000/ask
   }
-  reverse_proxy http://webtop:3000
 }
 
 https://portainer.{$DOMAIN_NAME} {
   reverse_proxy http://portainer:9000
+}
+
+*.{$DOMAIN_NAME} {
+  basicauth {
+    {$CADDY_USER} {$CADDY_PASSWORD}
+  }
+  reverse_proxy {
+    dynamic srv "srv-{http.request.host}" {
+      resolvers 10.64.32.254:53
+    }
+  }
+  tls {
+    on_demand
+  }
 }
