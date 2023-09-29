@@ -49,10 +49,6 @@ services:
     container_name: docker-dynamic-caddy
     image: mheys1/docker-dynamic-caddy
     restart: always
-    environment:
-      - DDC:App:DockerHostSettings:0:Endpoint=unix:///var/run/docker.sock
-      - DDC:App:DockerHostSettings:0:FriendlyName=Localhost
-      - DDC:App:Url=http://0.0.0.0:5000/
     labels:
       - caddy.dynamic.docker.dns=caddy.${DUCK_DNS_DOMAIN}.duckdns.org
       - caddy.dynamic.docker.target=docker-dynamic-caddy:5000
