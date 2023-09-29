@@ -14,6 +14,7 @@ networks:
 
 services:
   duckdns:
+    profiles: [ all ]
     image: lscr.io/linuxserver/duckdns:latest
     container_name: duckdns
     environment:
@@ -28,6 +29,7 @@ services:
     restart: unless-stopped
 
   caddy:
+    profiles: [ all ]
     image: caddy
     container_name: caddy
     restart: always
@@ -49,6 +51,7 @@ services:
       - dynamic-caddy
 
   docker-dynamic-caddy:
+    profiles: [ all ]
     container_name: docker-dynamic-caddy
     image: mheys1/docker-dynamic-caddy
     restart: always
@@ -65,8 +68,7 @@ services:
         ipv4_address: 10.64.32.254
 
   portainer:
-    profiles:
-      - portainer
+    profiles: [ all, portainer ]
     container_name: portainer
     image: portainer/portainer-ce
     volumes:
@@ -79,8 +81,7 @@ services:
     restart: always
 
   webtop:
-    profiles:
-      - webtop
+    profiles: [ all, webtop]
     image: lscr.io/linuxserver/webtop
     container_name: webtop
     privileged: true #optional
@@ -102,8 +103,7 @@ services:
       - internal
 
   nodered:
-    profiles:
-      - nodered
+    profiles: [ all, nodered ]
     container_name: nodered
     image: nodered/node-red:1.3.5
     volumes:
@@ -119,8 +119,7 @@ services:
     restart: unless-stopped
 
   dozzle:
-    profiles:
-      - dozzle
+    profiles: [ all, dozzle]
     container_name: dozzle
     image: amir20/dozzle:latest
     volumes:
