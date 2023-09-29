@@ -109,6 +109,8 @@ services:
     volumes:
       - ./nodered:/data
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - caddy
     labels:
       - caddy.dynamic.docker.dns=nodered.${DUCK_DNS_DOMAIN}.duckdns.org
       - caddy.dynamic.docker.target=nodered:1880
@@ -124,6 +126,8 @@ services:
     image: amir20/dozzle:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - caddy
     labels:
       - caddy.dynamic.docker.dns=dozzle.${DUCK_DNS_DOMAIN}.duckdns.org
       - caddy.dynamic.docker.target=dozzle:8080
