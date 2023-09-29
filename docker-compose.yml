@@ -13,7 +13,7 @@ networks:
           gateway: 10.64.32.1
 
 volumes:
-  - nodered
+  nodered:
 
 services:
   duckdns:
