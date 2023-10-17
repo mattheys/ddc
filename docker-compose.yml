@@ -1,8 +1,8 @@
 version: '3.5'
 
 networks:
-  internal:
-    name: internal
+  caddy:
+    name: caddy
     driver: bridge
 
 services:
@@ -20,22 +20,6 @@ services:
       - ./duckdns/config:/config #optional
     restart: unless-stopped
 
-  webtop:
-    image: lscr.io/linuxserver/webtop
-    container_name: webtop
-    privileged: true #optional
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    volumes:
-      - ./webtop:/config
-      - /var/run/docker.sock:/var/run/docker.sock #optional
-    shm_size: "1gb" #optional
-    restart: unless-stopped
-    networks:
-      - internal
-
   caddy:
     image: caddy
     container_name: caddy
@@ -45,22 +29,52 @@ services:
       - 443:443
     environment:
       - DOMAIN_NAME=${DUCK_DNS_DOMAIN}.duckdns.org
-      - CADDY_USER=${CADDY_USER}
-      - CADDY_PASSWORD=${CADDY_PASSWORD}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./caddy/data:/data
+    depends_on:
+      - docker-dynamic-caddy
+      - duckdns
     networks:
-      - internal
+      - caddy
 
-  portainer:
-    profiles:
-      - portainer
-    container_name: portainer
-    image: portainer/portainer-ce
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
-    networks:
-      - internal
+  docker-dynamic-caddy:
+    container_name: docker-dynamic-caddy
+    image: mheys1/docker-dynamic-caddy
     restart: always
+    labels:
+      - caddy.dynamic.docker.dns=caddy.${DUCK_DNS_DOMAIN}.duckdns.org
+      - caddy.dynamic.docker.target=docker-dynamic-caddy:5000
+    volumes:
+      - ./docker-dynamic-caddy/data:/app/data
+      - ./docker-dynamic-caddy/logs:/app/logs
+      - ./docker-dynamic-caddy/config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - caddy
+
+  authelia:
+    container_name: authelia
+    image: authelia/authelia
+    restart: always
+    environment:
+      - TZ=Europe/London
+      - AUTHELIA_SESSION_DOMAIN=${DUCK_DNS_DOMAIN}.duckdns.org
+      - AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
+      - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_STORAGE_ENCRYPTION_KEY}
+      - AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME=/config/notifications.txt
+# For Email Notifications, comment above line out and uncomment the below lines and fill in .env settings
+#      - AUTHELIA_NOTIFIER_SMTP_USERNAME=${AUTHELIA_NOTIFIER_SMTP_USERNAME}
+#      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${AUTHELIA_NOTIFIER_SMTP_PASSWORD}
+#      - AUTHELIA_NOTIFIER_SMTP_HOST=${AUTHELIA_NOTIFIER_SMTP_HOST}
+#      - AUTHELIA_NOTIFIER_SMTP_PORT=${AUTHELIA_NOTIFIER_SMTP_PORT}
+#      - AUTHELIA_NOTIFIER_SMTP_SENDER=${AUTHELIA_NOTIFIER_SMTP_SENDER}
+    volumes:
+      - ./authelia:/config
+    command:
+      - "authelia"
+      - "--config=/config/configuration.yml"
+      - "--config=/config/sites.yml"
+    networks:
+      - caddy

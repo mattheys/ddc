@@ -1,0 +1,13 @@
+.env
+.git
+
+*.sqlite3
+
+authelia/users.yml
+authelia/sites.yml
+authelia/notifications.txt
+
+docker-dynamic-caddy/config/*
+docker-dynamic-caddy/data/*
+
+caddy/data/*

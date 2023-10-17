@@ -2,15 +2,31 @@
   log {
     output stdout
   }
-}
-
-https://webtop.{$DOMAIN_NAME} {
-  basicauth {
-    {$CADDY_USER} {$CADDY_PASSWORD}
+  on_demand_tls {
+    ask http://docker-dynamic-caddy:5000/ask
   }
-  reverse_proxy http://webtop:3000
 }
 
-https://portainer.{$DOMAIN_NAME} {
-  reverse_proxy http://portainer:9000
+(auth) {
+  forward_auth authelia:9091 {
+    uri /api/verify?rd=https://auth.{$DOMAIN_NAME}/
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  }
+}
+
+https://auth.{$DOMAIN_NAME} {
+  reverse_proxy http://authelia:9091
+}
+
+
+*.{$DOMAIN_NAME} {
+  import auth
+  reverse_proxy {
+    dynamic srv "srv-{http.request.host}" {
+      resolvers docker-dynamic-caddy:53
+    }
+  }
+  tls {
+    on_demand
+  }
 }

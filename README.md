@@ -1,51 +1,60 @@
-# webtop
-Quick and easy way to get webtop up and running
+# Dynamic Docker Caddy
+Quick and easy way to get a reverse proxy up and running
 
 # Intstall steps debian/ubuntu
 
-### Install Docker and Git
+## Install Docker and Git
 ```
 sudo apt update && sudo apt upgrade
 sudo apt install git
 curl -fsSL https://get.docker.com -o install-docker.sh | sh
 ```
 
-#### Optional, install ZSH and Oh My ZSH.  This gives a better shell and tab completion for many commands including docker
+### Optional, install ZSH and Oh My ZSH.  This gives a better shell and tab completion for many commands including docker
 ```
 sudo apt install zsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
-### Add yourself to the Docker group
+## Add yourself to the Docker group
 ```
 sudo usermod -aG docker $(whoami)
 ```
 
-### Get started
+## Get started
 ```
-git clone https://github.com/mattheys/webtop
-cd webtop
+git clone https://github.com/mattheys/ddc
+cd ddc
 cp .env.example .env
+cp authelia/sites.example.yml authelia/sites.yml
+cp authelia/users.example.yml authelia/users.yml
 ```
 
-### Edit the environment file and fill in the details
+## Edit the .env environment file and fill in the details
 
 **DUCK_DNS_DOMAIN** This is the duckdns domain without the duckdns.org on the end
 
 **DUCK_DNS_TOKEN** Your duckdns Api Token
 
-**CADDY_USER** Username to access webtop
+**AUTHELIA_JWT_SECRET**, **AUTHELIA_SESSION_SECRET**, **AUTHELIA_STORAGE_ENCRYPTION_KEY** These are required to secure Authelia and should be different, you can generate these with the following command `docker run --rm authelia/authelia:latest authelia crypto rand --length 64 --charset alphanumeric`
 
-**CADDY_PASSWORD** Password to access webtop, password must be a bcrypt encrypted password https://bcrypt-generator.com/  The $'s in the password must be escapped with an extra $ e.g. $$2a$$12$$
+*Optionally* fill in the lines that start with **AUTHELIA_NOTIFIER_SMTP** to enable SMTP notifications to users in order to allow things like 2FA to be setup.
 
-### Go
+## Update users.yml
+
+Add your users to the users.yml file, to generate the password you can run `docker run -it --rm authelia/authelia:latest authelia crypto hash generate argon2` 
+
+## Update sites.yml
+
+Update the sites.yml with your domain name, configure specific subdomains with different policies like One Factor, Two Factor, Bypass or specific groups of allowed users.  Follow [https://www.authelia.com/configuration/security/access-control/](https://www.authelia.com/configuration/security/access-control/)
+
+## Enable Email Notifications from Authelia
+
+Edit the `docker-compose.yml` and comment out the line `- AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME=/config/notifications.txt` and uncomment the lines that start with `- AUTHELIA_NOTIFIER_SMTP`. Fill in the corresponding parts of the .env file with your SMTP server details.
+
+## Go
 ```
 docker compose up -d
 ```
 
-#### Optional start Portainer to manage containers, you must access and setup the login information for portainer within a few minutes or the container will stop itself
-```
-docker compose --profile portainer up -d
-```
-
-You should now be able to access your webtop at https://webtop.{Domain}.duckdns.org
+You should now be able to access ddc at https://caddy.{Domain}.duckdns.org
