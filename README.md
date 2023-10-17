@@ -58,3 +58,15 @@ docker compose up -d
 ```
 
 You should now be able to access ddc at https://caddy.{Domain}.duckdns.org
+
+## Going Forward
+
+Add labels to your containers to configure DDC
+
+``` yaml
+  labels:
+    - caddy.dynamic.docker.dns=DomainNameIncludingSubdomain
+    - caddy.dynamic.docker.target=TargetDnsName:TargetPort
+```
+
+The target needs to be hostname, you can't use an IP Address due to the limitations of the SRV protocol.  If the app is on the same network as Caddy you can use it's container name.  You can also setup a public dns record in your DNS service to point to a private IP Address.  
