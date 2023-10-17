@@ -1,23 +1,12 @@
 version: '3.5'
 
 networks:
-  internal:
-    name: internal
+  caddy:
+    name: caddy
     driver: bridge
-
-  dynamic-caddy:
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.64.32.0/24
-          gateway: 10.64.32.1
-
-volumes:
-  nodered:
 
 services:
   duckdns:
-    profiles: [ all ]
     image: lscr.io/linuxserver/duckdns:latest
     container_name: duckdns
     environment:
@@ -32,7 +21,6 @@ services:
     restart: unless-stopped
 
   caddy:
-    profiles: [ all ]
     image: caddy
     container_name: caddy
     restart: always
@@ -41,8 +29,6 @@ services:
       - 443:443
     environment:
       - DOMAIN_NAME=${DUCK_DNS_DOMAIN}.duckdns.org
-      - CADDY_USER=${CADDY_USER}
-      - CADDY_PASSWORD=${CADDY_PASSWORD}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - ./caddy/data:/data
@@ -50,11 +36,9 @@ services:
       - docker-dynamic-caddy
       - duckdns
     networks:
-      - internal
-      - dynamic-caddy
+      - caddy
 
   docker-dynamic-caddy:
-    profiles: [ all ]
     container_name: docker-dynamic-caddy
     image: mheys1/docker-dynamic-caddy
     restart: always
@@ -67,74 +51,30 @@ services:
       - ./docker-dynamic-caddy/config:/app/config
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      dynamic-caddy:
-        ipv4_address: 10.64.32.254
-
-  portainer:
-    profiles: [ all, portainer ]
-    container_name: portainer
-    image: portainer/portainer-ce
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./portainer:/data
-    depends_on:
       - caddy
-    networks:
-      - internal
+
+  authelia:
+    container_name: authelia
+    image: authelia/authelia
     restart: always
-
-  webtop:
-    profiles: [ all, webtop]
-    image: lscr.io/linuxserver/webtop
-    container_name: webtop
-    privileged: true #optional
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Europe/London
-    labels:
-      - caddy.dynamic.docker.dns=webtop.${DUCK_DNS_DOMAIN}.duckdns.org
-      - caddy.dynamic.docker.target=webtop:3000
-    volumes:
-      - ./webtop:/config
-      - /var/run/docker.sock:/var/run/docker.sock #optional
-    depends_on:
-      - caddy
-    shm_size: "1gb" #optional
-    restart: unless-stopped
-    networks:
-      - internal
-
-  nodered:
-    profiles: [ all, nodered ]
-    container_name: nodered
-    image: nodered/node-red:latest
-    user: node-red:dialout
-    volumes:
-      - nodered:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - caddy
-    labels:
-      - caddy.dynamic.docker.dns=nodered.${DUCK_DNS_DOMAIN}.duckdns.org
-      - caddy.dynamic.docker.target=nodered:1880
     environment:
       - TZ=Europe/London
-    networks:
-      - internal
-    restart: unless-stopped
-
-  dozzle:
-    profiles: [ all, dozzle]
-    container_name: dozzle
-    image: amir20/dozzle:latest
+      - AUTHELIA_SESSION_DOMAIN=${DUCK_DNS_DOMAIN}.duckdns.org
+      - AUTHELIA_JWT_SECRET=${AUTHELIA_JWT_SECRET}
+      - AUTHELIA_SESSION_SECRET=${AUTHELIA_SESSION_SECRET}
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY=${AUTHELIA_STORAGE_ENCRYPTION_KEY}
+      - AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME=/config/notifications.txt
+# For Email Notifications, comment above line out and uncomment the below lines and fill in .env settings
+#      - AUTHELIA_NOTIFIER_SMTP_USERNAME=${AUTHELIA_NOTIFIER_SMTP_USERNAME}
+#      - AUTHELIA_NOTIFIER_SMTP_PASSWORD=${AUTHELIA_NOTIFIER_SMTP_PASSWORD}
+#      - AUTHELIA_NOTIFIER_SMTP_HOST=${AUTHELIA_NOTIFIER_SMTP_HOST}
+#      - AUTHELIA_NOTIFIER_SMTP_PORT=${AUTHELIA_NOTIFIER_SMTP_PORT}
+#      - AUTHELIA_NOTIFIER_SMTP_SENDER=${AUTHELIA_NOTIFIER_SMTP_SENDER}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - caddy
-    labels:
-      - caddy.dynamic.docker.dns=dozzle.${DUCK_DNS_DOMAIN}.duckdns.org
-      - caddy.dynamic.docker.target=dozzle:8080
+      - ./authelia:/config
+    command:
+      - "authelia"
+      - "--config=/config/configuration.yml"
+      - "--config=/config/sites.yml"
     networks:
-      - internal
-
+      - caddy

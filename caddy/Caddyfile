@@ -3,21 +3,27 @@
     output stdout
   }
   on_demand_tls {
-    ask http://10.64.32.254:5000/ask
+    ask http://docker-dynamic-caddy:5000/ask
   }
 }
 
-https://portainer.{$DOMAIN_NAME} {
-  reverse_proxy http://portainer:9000
+(auth) {
+  forward_auth authelia:9091 {
+    uri /api/verify?rd=https://auth.{$DOMAIN_NAME}/
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email
+  }
 }
+
+https://auth.{$DOMAIN_NAME} {
+  reverse_proxy http://authelia:9091
+}
+
 
 *.{$DOMAIN_NAME} {
-  basicauth {
-    {$CADDY_USER} {$CADDY_PASSWORD}
-  }
+  import auth
   reverse_proxy {
     dynamic srv "srv-{http.request.host}" {
-      resolvers 10.64.32.254:53
+      resolvers docker-dynamic-caddy:53
     }
   }
   tls {

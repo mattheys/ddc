@@ -1,0 +1,7 @@
+access_control:
+  default_policy: deny
+  rules:
+    - domain: '*.YOURDOMAIN.duckdns.org'
+      policy: two_factor
+      subject:
+        - 'group:admins'
