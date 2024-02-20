@@ -5,14 +5,14 @@ Quick and easy way to get a reverse proxy up and running
 
 ## Install Docker and Git
 ```
-sudo apt update && sudo apt upgrade
-sudo apt install git
-curl -fsSL https://get.docker.com -o install-docker.sh | sh
+sudo apt update && sudo apt upgrade && \
+sudo apt install git && \
+curl -fsSL https://get.docker.com | sh
 ```
 
 ### Optional, install ZSH and Oh My ZSH.  This gives a better shell and tab completion for many commands including docker
 ```
-sudo apt install zsh
+sudo apt install zsh && \
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
@@ -23,10 +23,10 @@ sudo usermod -aG docker $(whoami)
 
 ## Get started
 ```
-git clone https://github.com/mattheys/ddc
-cd ddc
-cp .env.example .env
-cp authelia/sites.example.yml authelia/sites.yml
+git clone https://github.com/mattheys/ddc && \
+cd ddc && \
+cp .env.example .env && \
+cp authelia/sites.example.yml authelia/sites.yml && \
 cp authelia/users.example.yml authelia/users.yml
 ```
 
