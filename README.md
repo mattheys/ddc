@@ -6,7 +6,7 @@ Quick and easy way to get a reverse proxy up and running
 ## Install Docker and Git
 ```
 sudo apt update && sudo apt upgrade && \
-sudo apt install git && \
+sudo apt install git curl && \
 curl -fsSL https://get.docker.com | sh
 ```
 
